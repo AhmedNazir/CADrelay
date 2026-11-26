@@ -1,0 +1,103 @@
+.dialogSurface {
+  max-width: 680px !important;
+  width: 90vw !important;
+  max-height: 85vh;
+  overflow-y: auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.card {
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #d0d7de;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s ease;
+}
+
+:global(.dark) .card {
+  background: #1c2128;
+  border-color: #30363d;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardDesc {
+  color: #57606a;
+  line-height: 1.4;
+}
+
+:global(.dark) .cardDesc {
+  color: #8b949e;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.table th, .table td {
+  padding: 6px 10px;
+  border: 1px solid #d0d7de;
+  text-align: left;
+}
+
+:global(.dark) .table th, :global(.dark) .table td {
+  border-color: #30363d;
+}
+
+.table th {
+  background: #f6f8fa;
+  font-weight: 600;
+}
+
+:global(.dark) .table th {
+  background: #21262d;
+}
+
+.table kbd {
+  background: #eff1f3;
+  border: 1px solid #c9d1d9;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+}
+
+:global(.dark) .table kbd {
+  background: #282e33;
+  border-color: #444c56;
+}
+
+.list {
+  padding-left: 20px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}

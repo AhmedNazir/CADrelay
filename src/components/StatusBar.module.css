@@ -1,0 +1,29 @@
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 12px;
+  background: #0f6cbd;
+  color: white;
+  font-size: 12px;
+  min-height: 24px;
+  gap: 8px;
+}
+
+.statusBar.dark {
+  background: #1a1a2e;
+  border-top: 1px solid #444;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.85;
+}

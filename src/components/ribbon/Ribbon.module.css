@@ -1,0 +1,75 @@
+.ribbonContainer {
+  display: flex;
+  flex-direction: column;
+  background: #f3f3f3;
+  border-bottom: 1px solid #d1d1d1;
+  user-select: none;
+}
+
+.ribbonContainer.dark {
+  background: #1f1f1f;
+  border-bottom: 1px solid #444;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: #0f6cbd;
+  color: white;
+  font-size: 13px;
+  min-height: 32px;
+}
+
+.appTitle {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.projectName {
+  font-weight: 400;
+  opacity: 0.85;
+  font-size: 12px;
+}
+
+.titleHelpBtn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.titleHelpBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.quickAccess {
+  padding: 2px 8px;
+  background: #e8e8e8;
+  border-bottom: 1px solid #d1d1d1;
+}
+
+.dark .quickAccess {
+  background: #2a2a2a;
+  border-bottom: 1px solid #444;
+}
+
+.tabList {
+  padding: 0 8px;
+  background: transparent;
+}
+
+.tabContent {
+  padding: 6px 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 72px;
+  flex-wrap: wrap;
+}

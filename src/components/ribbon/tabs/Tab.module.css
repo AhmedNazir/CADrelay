@@ -1,0 +1,69 @@
+.tabRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 0 6px;
+}
+
+.groupLabel {
+  color: #6c757d;
+  font-size: 10px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-left: 2px;
+}
+
+.divider {
+  width: 1px;
+  height: 54px;
+  background: #d0d7de;
+  margin: 0 4px;
+  align-self: center;
+}
+
+:global(.dark) .divider {
+  background: #30363d;
+}
+
+.symbolBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 58px !important;
+  height: 50px !important;
+  font-size: 11px !important;
+  gap: 2px;
+  padding: 4px 6px !important;
+}
+
+.symbolBtnActive {
+  background: #ddf4ff !important;
+  border: 1px solid #0969da !important;
+}
+
+:global(.dark) .symbolBtnActive {
+  background: #0d2847 !important;
+  border-color: #58a6ff !important;
+}
+
+.symbolIcon {
+  font-size: 14px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.symbolLabel {
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap;
+}
