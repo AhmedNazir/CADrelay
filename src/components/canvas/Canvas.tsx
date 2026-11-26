@@ -79,8 +79,13 @@ export const SchematicCanvas: React.FC = () => {
     togglePlacingFlipY,
   } = useUIStore();
 
-  const { simState, energizedWires, energizedComponents, activeTimers } =
-    useSimStore();
+  const {
+    simState,
+    energizedWires,
+    energizedComponents,
+    activeTimers,
+    faultWireIds,
+  } = useSimStore();
   const isEditing = simState === "stopped";
 
   const finishWireAt = useCallback(
@@ -163,6 +168,12 @@ export const SchematicCanvas: React.FC = () => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (!isEditing) {
+        setActiveTool("select");
+        setPlacingComponent(null);
+        return;
+      }
 
       if (e.key === "s" || e.key === "S") setActiveTool("select");
       if (e.key === "w" || e.key === "W") setActiveTool("wire");
@@ -450,6 +461,7 @@ export const SchematicCanvas: React.FC = () => {
 
           {/* Wires */}
           {wires.map((wire) => {
+            const fault = faultWireIds.has(wire.id);
             const energized = energizedWires.has(wire.id);
             const selected = selectedIds.includes(wire.id);
             return (
@@ -457,13 +469,25 @@ export const SchematicCanvas: React.FC = () => {
                 key={wire.id}
                 name="wire-segment"
                 points={wire.points}
-                stroke={energized ? ACTIVE_COLOR : wire.color || wireDef}
+                stroke={
+                  fault
+                    ? "#ff1744"
+                    : energized
+                      ? ACTIVE_COLOR
+                      : wire.color || wireDef
+                }
                 strokeWidth={wire.strokeWidth ?? 2}
                 lineCap="round"
                 shadowColor={
-                  energized ? "#00e676" : selected ? SEL_COLOR : undefined
+                  fault
+                    ? "#ff1744"
+                    : energized
+                      ? "#00e676"
+                      : selected
+                        ? SEL_COLOR
+                        : undefined
                 }
-                shadowBlur={energized ? 7 : selected ? 4 : 0}
+                shadowBlur={fault ? 16 : energized ? 7 : selected ? 4 : 0}
                 onClick={() => {
                   if (activeTool !== "wire") setSelected([wire.id]);
                 }}

@@ -1,6 +1,7 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+import { useUIStore } from "./uiStore";
 
-export type SimState = 'stopped' | 'running' | 'paused';
+export type SimState = "stopped" | "running" | "paused";
 
 export interface TimerStatus {
   elapsed: number;
@@ -16,6 +17,8 @@ interface SimStore {
   energizedCoils: Set<string>;
   energizedComponents: Set<string>;
   activeTimers: Record<string, TimerStatus>;
+  faultWireIds: Set<string>;
+  trippedComponentIds: Set<string>;
 
   play: () => void;
   pause: () => void;
@@ -23,6 +26,8 @@ interface SimStore {
   step: () => void;
   setSpeed: (ms: number) => void;
   setShortCircuit: (sc: boolean) => void;
+  setFaultWireIds: (ids: Set<string>) => void;
+  setTrippedComponentIds: (ids: Set<string>) => void;
   setEnergizedWires: (ids: Set<string>) => void;
   setEnergizedCoils: (ids: Set<string>) => void;
   setEnergizedComponents: (ids: Set<string>) => void;
@@ -31,28 +36,42 @@ interface SimStore {
 }
 
 export const useSimStore = create<SimStore>((set) => ({
-  simState: 'stopped',
+  simState: "stopped",
   speed: 100,
   isShortCircuit: false,
   energizedWires: new Set(),
   energizedCoils: new Set(),
   energizedComponents: new Set(),
   activeTimers: {},
+  faultWireIds: new Set(),
+  trippedComponentIds: new Set(),
 
-  play: () => set({ simState: 'running' }),
-  pause: () => set((s) => ({ simState: s.simState === 'running' ? 'paused' : 'running' })),
+  play: () => {
+    useUIStore.getState().setActiveTool("select");
+    set({ simState: "running" });
+  },
+  pause: () =>
+    set((s) => {
+      const nextState = s.simState === "running" ? "paused" : "running";
+      useUIStore.getState().setActiveTool("select");
+      return { simState: nextState };
+    }),
   stop: () =>
     set({
-      simState: 'stopped',
+      simState: "stopped",
       isShortCircuit: false,
       energizedWires: new Set(),
       energizedCoils: new Set(),
       energizedComponents: new Set(),
       activeTimers: {},
+      faultWireIds: new Set(),
+      trippedComponentIds: new Set(),
     }),
-  step: () => set({ simState: 'paused' }),
+  step: () => set({ simState: "paused" }),
   setSpeed: (ms) => set({ speed: Math.max(30, Math.min(2000, ms)) }),
   setShortCircuit: (sc) => set({ isShortCircuit: sc }),
+  setFaultWireIds: (ids) => set({ faultWireIds: ids }),
+  setTrippedComponentIds: (ids) => set({ trippedComponentIds: ids }),
   setEnergizedWires: (ids) => set({ energizedWires: ids }),
   setEnergizedCoils: (ids) => set({ energizedCoils: ids }),
   setEnergizedComponents: (ids) => set({ energizedComponents: ids }),
@@ -64,5 +83,7 @@ export const useSimStore = create<SimStore>((set) => ({
       energizedCoils: new Set(),
       energizedComponents: new Set(),
       activeTimers: {},
+      faultWireIds: new Set(),
+      trippedComponentIds: new Set(),
     }),
 }));

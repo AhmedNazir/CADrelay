@@ -217,8 +217,14 @@ export const PropertiesPanel: React.FC = () => {
     setDefaultWireColor,
     setDefaultWireWidth,
   } = useUIStore();
-  const { simState, energizedCoils, energizedComponents, activeTimers } =
-    useSimStore();
+  const {
+    simState,
+    energizedCoils,
+    energizedComponents,
+    activeTimers,
+    isShortCircuit,
+    trippedComponentIds,
+  } = useSimStore();
 
   const selId = selectedIds[0];
   const comp = components.find((c) => c.id === selId);
@@ -383,6 +389,7 @@ export const PropertiesPanel: React.FC = () => {
   }
 
   const isEnergized = comp ? energizedComponents.has(comp.id) : false;
+  const isTripped = comp ? trippedComponentIds.has(comp.id) : false;
 
   return (
     <div className={`${styles.panel} ${theme === "dark" ? styles.dark : ""}`}>
@@ -402,6 +409,41 @@ export const PropertiesPanel: React.FC = () => {
       </div>
 
       <div className={styles.body}>
+        {simState !== "stopped" && (
+          <div className={styles.liveBox}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 6,
+              }}
+            >
+              <Text size={100} weight="semibold">
+                Simulation Status
+              </Text>
+              <Badge
+                appearance="filled"
+                color={
+                  isTripped ? "danger" : isEnergized ? "success" : "informative"
+                }
+                size="small"
+              >
+                {isTripped
+                  ? "TRIPPED"
+                  : isEnergized
+                    ? "ON / ENERGIZED"
+                    : "OFF / DE-ENERGIZED"}
+              </Badge>
+            </div>
+            {isShortCircuit && (
+              <Text size={100} style={{ color: "#d32f2f" }}>
+                Short-circuit fault detected
+              </Text>
+            )}
+          </div>
+        )}
+
         {/* Type Info */}
         <div className={styles.typeRow}>
           <Text size={300} weight="semibold">

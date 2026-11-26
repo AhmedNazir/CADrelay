@@ -78,16 +78,10 @@ export const Ribbon: React.FC = () => {
         </div>
 
         {/* Simulation Controls in Title Bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            marginLeft: "auto",
-          }}
-        >
+        <div className={styles.simulationControls}>
           <Tooltip content="Start Simulation (F5)" relationship="label">
             <ToolbarButton
+              className={styles.simButton}
               icon={<Play24Regular />}
               appearance={simState === "running" ? "primary" : "subtle"}
               onClick={play}
@@ -98,6 +92,7 @@ export const Ribbon: React.FC = () => {
           </Tooltip>
           <Tooltip content="Pause / Resume" relationship="label">
             <ToolbarButton
+              className={styles.simButton}
               icon={<Pause24Regular />}
               appearance={simState === "paused" ? "primary" : "subtle"}
               onClick={pause}
@@ -108,6 +103,7 @@ export const Ribbon: React.FC = () => {
           </Tooltip>
           <Tooltip content="Stop Simulation" relationship="label">
             <ToolbarButton
+              className={styles.simButton}
               icon={<Stop24Regular />}
               onClick={stop}
               disabled={simState === "stopped"}
@@ -117,6 +113,7 @@ export const Ribbon: React.FC = () => {
           </Tooltip>
           <Tooltip content="Single Step" relationship="label">
             <ToolbarButton
+              className={styles.simButton}
               icon={<Next24Regular />}
               onClick={step}
               disabled={simState === "running"}
@@ -125,20 +122,14 @@ export const Ribbon: React.FC = () => {
             </ToolbarButton>
           </Tooltip>
 
-          <div
-            style={{
-              width: 1,
-              height: 24,
-              background: "var(--colorNeutralStroke1)",
-              margin: "0 8",
-            }}
-          />
+          <div className={styles.controlSeparator} />
 
           {isShortCircuit && (
             <Badge
               appearance="filled"
               color="danger"
               icon={<Warning24Regular />}
+              className={styles.faultBadge}
             >
               SHORT CIRCUIT
             </Badge>
@@ -148,7 +139,7 @@ export const Ribbon: React.FC = () => {
             <Badge
               appearance="filled"
               color="success"
-              className={styles.simBadge}
+              className={styles.liveBadge}
             >
               ● SIMULATING LIVE
             </Badge>

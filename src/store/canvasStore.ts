@@ -1,103 +1,103 @@
-import { create } from 'zustand';
-import { getComponentTerminals } from '../engine/graph';
+import { create } from "zustand";
+import { getComponentTerminals } from "../engine/graph";
 import {
   findTerminalAtPoint,
   getWireEndpoints,
   updateWireEndpoints,
-} from '../utils/wireGeometry';
-import { snapPoint, snapToGrid } from '../utils/snapGrid';
+} from "../utils/wireGeometry";
+import { snapPoint, snapToGrid } from "../utils/snapGrid";
 
 export type ComponentType =
   // Power Rails & Supplies
-  | 'POWER_RAIL_L1'
-  | 'POWER_RAIL_L2'
-  | 'POWER_RAIL_L3'
-  | 'POWER_AC_N'
-  | 'POWER_RAIL_PE'
-  | 'POWER_DC_POS'
-  | 'POWER_DC_NEG'
-  | 'POWER_DC_PE'
-  | 'POWER_AC_1P_N'
-  | 'POWER_AC_3P'
-  | 'POWER_AC_3P_N'
-  | 'POWER_AC_3P_N_PE'
-  | 'DC_BATTERY'
-  | 'INVERTER_1P'
-  | 'INVERTER_3P'
-  | 'GENERATOR_3P'
+  | "POWER_RAIL_L1"
+  | "POWER_RAIL_L2"
+  | "POWER_RAIL_L3"
+  | "POWER_AC_N"
+  | "POWER_RAIL_PE"
+  | "POWER_DC_POS"
+  | "POWER_DC_NEG"
+  | "POWER_DC_PE"
+  | "POWER_AC_1P_N"
+  | "POWER_AC_3P"
+  | "POWER_AC_3P_N"
+  | "POWER_AC_3P_N_PE"
+  | "DC_BATTERY"
+  | "INVERTER_1P"
+  | "INVERTER_3P"
+  | "GENERATOR_3P"
   // Circuit Protection (Protections section)
-  | 'CIRCUIT_BREAKER'
-  | 'FUSE'
-  | 'PHASE_FAILURE'
-  | 'FUSE_1P'
-  | 'FUSE_2P'
-  | 'FUSE_3P'
-  | 'FUSE_4P'
-  | 'OVERLOAD_1P'
-  | 'OVERLOAD_2P'
-  | 'OVERLOAD_3P'
-  | 'FUSE_DISC_1P'
-  | 'FUSE_DISC_1PN'
-  | 'FUSE_DISC_2P'
-  | 'FUSE_DISC_3P'
-  | 'FUSE_DISC_3PN'
-  | 'FUSE_DISC_4P'
-  | 'ISOLATOR_1P'
-  | 'ISOLATOR_2P'
-  | 'ISOLATOR_3P'
-  | 'ISOLATOR_4P'
-  | 'MCB_1P'
-  | 'MCB_2P'
-  | 'MCB_3P'
-  | 'MCB_4P'
-  | 'MCCB_1P'
-  | 'MCCB_2P'
-  | 'MCCB_3P'
-  | 'MCCB_4P'
-  | 'MAG_CB_1P'
-  | 'MAG_CB_2P'
-  | 'MAG_CB_3P'
-  | 'MAG_CB_4P'
-  | 'RCD_2P'
-  | 'RCD_4P'
-  | 'RCBO_1PN'
-  | 'RCBO_2P'
-  | 'RCBO_3P'
-  | 'RCBO_4P'
+  | "CIRCUIT_BREAKER"
+  | "FUSE"
+  | "PHASE_FAILURE"
+  | "FUSE_1P"
+  | "FUSE_2P"
+  | "FUSE_3P"
+  | "FUSE_4P"
+  | "OVERLOAD_1P"
+  | "OVERLOAD_2P"
+  | "OVERLOAD_3P"
+  | "FUSE_DISC_1P"
+  | "FUSE_DISC_1PN"
+  | "FUSE_DISC_2P"
+  | "FUSE_DISC_3P"
+  | "FUSE_DISC_3PN"
+  | "FUSE_DISC_4P"
+  | "ISOLATOR_1P"
+  | "ISOLATOR_2P"
+  | "ISOLATOR_3P"
+  | "ISOLATOR_4P"
+  | "MCB_1P"
+  | "MCB_2P"
+  | "MCB_3P"
+  | "MCB_4P"
+  | "MCCB_1P"
+  | "MCCB_2P"
+  | "MCCB_3P"
+  | "MCCB_4P"
+  | "MAG_CB_1P"
+  | "MAG_CB_2P"
+  | "MAG_CB_3P"
+  | "MAG_CB_4P"
+  | "RCD_2P"
+  | "RCD_4P"
+  | "RCBO_1PN"
+  | "RCBO_2P"
+  | "RCBO_3P"
+  | "RCBO_4P"
   // Switches & Inputs
-  | 'PUSHBUTTON_NO'
-  | 'PUSHBUTTON_NC'
-  | 'EMERGENCY_STOP'
-  | 'SWITCH_TOGGLE'
-  | 'SWITCH_2P'
-  | 'SWITCH_3P'
-  | 'THERMAL_OVERLOAD'
+  | "PUSHBUTTON_NO"
+  | "PUSHBUTTON_NC"
+  | "EMERGENCY_STOP"
+  | "SWITCH_TOGGLE"
+  | "SWITCH_2P"
+  | "SWITCH_3P"
+  | "THERMAL_OVERLOAD"
   // Contacts & Power Contactors
-  | 'NO_CONTACT'
-  | 'NC_CONTACT'
-  | 'TIMER_NO_CONTACT'
-  | 'TIMER_NC_CONTACT'
-  | 'CONTACTOR_1P'
-  | 'CONTACTOR_2P'
-  | 'CONTACTOR_3P'
-  | 'CONTACTOR_4P'
+  | "NO_CONTACT"
+  | "NC_CONTACT"
+  | "TIMER_NO_CONTACT"
+  | "TIMER_NC_CONTACT"
+  | "CONTACTOR_1P"
+  | "CONTACTOR_2P"
+  | "CONTACTOR_3P"
+  | "CONTACTOR_4P"
   // Coils & Relays
-  | 'COIL'
-  | 'COIL_SET'
-  | 'COIL_RESET'
-  | 'TIMER_TON'
-  | 'TIMER_TOF'
+  | "COIL"
+  | "COIL_SET"
+  | "COIL_RESET"
+  | "TIMER_TON"
+  | "TIMER_TOF"
   // Outputs & Actuators
-  | 'LAMP'
-  | 'LAMP_AC'
-  | 'LAMP_DC'
-  | 'MOTOR_1P'
-  | 'MOTOR_3P'
-  | 'MOTOR_3P_V'
-  | 'MOTOR_3P_6T'
-  | 'HEATER_1P'
-  | 'HEATER_3P'
-  | 'BUZZER';
+  | "LAMP"
+  | "LAMP_AC"
+  | "LAMP_DC"
+  | "MOTOR_1P"
+  | "MOTOR_3P"
+  | "MOTOR_3P_V"
+  | "MOTOR_3P_6T"
+  | "HEATER_1P"
+  | "HEATER_3P"
+  | "BUZZER";
 
 export type RotationAngle = 0 | 90 | 180 | 270;
 
@@ -152,14 +152,14 @@ interface CanvasState {
     newX: number,
     newY: number,
     origComp: CanvasComponent,
-    origWires: WireSegment[]
+    origWires: WireSegment[],
   ) => void;
   commitComponentMove: (
     id: string,
     newX: number,
     newY: number,
     origComponents: CanvasComponent[],
-    origWires: WireSegment[]
+    origWires: WireSegment[],
   ) => void;
   removeSelected: () => void;
   addWire: (wire: WireSegment) => void;
@@ -170,9 +170,10 @@ interface CanvasState {
   setSelected: (ids: string[]) => void;
   toggleButton: (id: string) => void;
   setButtonState: (id: string, pressed: boolean) => void;
+  setSwitchState: (id: string, closed: boolean) => void;
   toggleSwitch: (id: string) => void;
   rotateSelected: () => void;
-  mirrorSelected: (axis: 'x' | 'y') => void;
+  mirrorSelected: (axis: "x" | "y") => void;
   duplicateSelected: () => void;
   loadCircuit: (components: CanvasComponent[], wires: WireSegment[]) => void;
   clearAll: () => void;
@@ -196,7 +197,7 @@ const snapWire = (wire: WireSegment): WireSegment => ({
 function syncWiresForComponentTransform(
   prevComp: CanvasComponent,
   nextComp: CanvasComponent,
-  wires: WireSegment[]
+  wires: WireSegment[],
 ): WireSegment[] {
   const oldTerms = getComponentTerminals(prevComp);
   const newTerms = getComponentTerminals(nextComp);
@@ -275,7 +276,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   updateComponent: (id, updates) =>
     set((s) => ({
       components: s.components.map((c) =>
-        c.id === id ? snapComponent({ ...c, ...updates }) : c
+        c.id === id ? snapComponent({ ...c, ...updates }) : c,
       ),
     })),
 
@@ -299,7 +300,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   previewComponentMove: (id, newX, newY, origComp, origWires) => {
     [newX, newY] = snapPoint(newX, newY);
     const nextComp = { ...origComp, x: newX, y: newY };
-    const updatedWires = syncWiresForComponentTransform(origComp, nextComp, origWires);
+    const updatedWires = syncWiresForComponentTransform(
+      origComp,
+      nextComp,
+      origWires,
+    );
     set((s) => ({
       components: s.components.map((c) => (c.id === id ? nextComp : c)),
       wires: updatedWires,
@@ -318,10 +323,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
     const { history, historyIndex } = get();
     const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push({ components: clone(origComponents), wires: clone(origWires) });
+    newHistory.push({
+      components: clone(origComponents),
+      wires: clone(origWires),
+    });
 
     const nextComp = { ...origComp, x: newX, y: newY };
-    const updatedWires = syncWiresForComponentTransform(origComp, nextComp, origWires);
+    const updatedWires = syncWiresForComponentTransform(
+      origComp,
+      nextComp,
+      origWires,
+    );
 
     set({
       components: origComponents.map((c) => (c.id === id ? nextComp : c)),
@@ -341,7 +353,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       wires: s.wires
         .filter((w) => !removedSet.has(w.id))
         .map((w) => {
-          const dropStart = w.startPin && removedSet.has(w.startPin.componentId);
+          const dropStart =
+            w.startPin && removedSet.has(w.startPin.componentId);
           const dropEnd = w.endPin && removedSet.has(w.endPin.componentId);
           if (!dropStart && !dropEnd) return w;
           return {
@@ -365,14 +378,28 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       const startTerm =
         snapped.startPin ??
         (() => {
-          const hit = findTerminalAtPoint(components, x1, y1, getComponentTerminals);
-          return hit ? { componentId: hit.componentId, terminalName: hit.terminalName } : undefined;
+          const hit = findTerminalAtPoint(
+            components,
+            x1,
+            y1,
+            getComponentTerminals,
+          );
+          return hit
+            ? { componentId: hit.componentId, terminalName: hit.terminalName }
+            : undefined;
         })();
       const endTerm =
         snapped.endPin ??
         (() => {
-          const hit = findTerminalAtPoint(components, x2, y2, getComponentTerminals);
-          return hit ? { componentId: hit.componentId, terminalName: hit.terminalName } : undefined;
+          const hit = findTerminalAtPoint(
+            components,
+            x2,
+            y2,
+            getComponentTerminals,
+          );
+          return hit
+            ? { componentId: hit.componentId, terminalName: hit.terminalName }
+            : undefined;
         })();
 
       return {
@@ -398,8 +425,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         wire.id === id
           ? {
               ...wire,
-              points: wire.points.map((value, index) =>
-                value + (index % 2 === 0 ? deltaX : deltaY),
+              points: wire.points.map(
+                (value, index) => value + (index % 2 === 0 ? deltaX : deltaY),
               ),
               startPin: undefined,
               endPin: undefined,
@@ -413,7 +440,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     get()._pushHistory();
     set((s) => ({
       wires: s.wires.map((w) =>
-        w.id === id ? snapWire({ ...w, ...updates }) : w
+        w.id === id ? snapWire({ ...w, ...updates }) : w,
       ),
     }));
   },
@@ -424,7 +451,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     get()._pushHistory();
     set((s) => ({
       wires: s.wires.map((w) =>
-        idSet.has(w.id) ? snapWire({ ...w, ...updates }) : w
+        idSet.has(w.id) ? snapWire({ ...w, ...updates }) : w,
       ),
     }));
   },
@@ -443,6 +470,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       const next = new Set(s.pressedButtons);
       pressed ? next.add(id) : next.delete(id);
       return { pressedButtons: next };
+    }),
+
+  setSwitchState: (id, closed) =>
+    set((s) => {
+      const next = new Set(s.toggledSwitches);
+      if (closed) next.add(id);
+      else next.delete(id);
+      return { toggledSwitches: next };
     }),
 
   toggleSwitch: (id) =>
@@ -480,7 +515,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const nextComponents = components.map((c) => {
       if (!selectedIds.includes(c.id)) return c;
       const updated =
-        axis === 'x' ? { ...c, flipX: !c.flipX } : { ...c, flipY: !c.flipY };
+        axis === "x" ? { ...c, flipX: !c.flipX } : { ...c, flipY: !c.flipY };
       nextWires = syncWiresForComponentTransform(c, updated, nextWires);
       return updated;
     });
@@ -514,17 +549,25 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         const pts = w.points.map((v) => v + offset);
         const startPin =
           w.startPin && compIdMap.has(w.startPin.componentId)
-            ? { componentId: compIdMap.get(w.startPin.componentId)!, terminalName: w.startPin.terminalName }
+            ? {
+                componentId: compIdMap.get(w.startPin.componentId)!,
+                terminalName: w.startPin.terminalName,
+              }
             : undefined;
         const endPin =
           w.endPin && compIdMap.has(w.endPin.componentId)
-            ? { componentId: compIdMap.get(w.endPin.componentId)!, terminalName: w.endPin.terminalName }
+            ? {
+                componentId: compIdMap.get(w.endPin.componentId)!,
+                terminalName: w.endPin.terminalName,
+              }
             : undefined;
         newWires.push({
           id,
           points: pts,
           ...(w.color ? { color: w.color } : {}),
-          ...(w.strokeWidth !== undefined ? { strokeWidth: w.strokeWidth } : {}),
+          ...(w.strokeWidth !== undefined
+            ? { strokeWidth: w.strokeWidth }
+            : {}),
           ...(startPin ? { startPin } : {}),
           ...(endPin ? { endPin } : {}),
         });
@@ -564,12 +607,20 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   undo: () => {
     const { history, historyIndex } = get();
     if (historyIndex <= 0) return;
-    set({ ...history[historyIndex - 1], historyIndex: historyIndex - 1, selectedIds: [] });
+    set({
+      ...history[historyIndex - 1],
+      historyIndex: historyIndex - 1,
+      selectedIds: [],
+    });
   },
 
   redo: () => {
     const { history, historyIndex } = get();
     if (historyIndex >= history.length - 1) return;
-    set({ ...history[historyIndex + 1], historyIndex: historyIndex + 1, selectedIds: [] });
+    set({
+      ...history[historyIndex + 1],
+      historyIndex: historyIndex + 1,
+      selectedIds: [],
+    });
   },
 }));
