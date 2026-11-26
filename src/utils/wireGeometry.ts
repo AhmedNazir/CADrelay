@@ -134,7 +134,7 @@ export function updateWireEndpoints(
   if (nextStart) {
     const [nx, ny] = nextStart;
     if (pts.length === 4) {
-      const [ox, oy, p1x, p1y] = pts;
+      const [, oy, p1x, p1y] = pts;
       if (nx === p1x || ny === p1y) {
         pts = [nx, ny, p1x, p1y];
       } else if (oy === p1y) {
@@ -166,7 +166,7 @@ export function updateWireEndpoints(
     const [nx, ny] = nextEnd;
     const n = pts.length;
     if (n === 4) {
-      const [pmx, pmy, ox, oy] = pts;
+      const [pmx, pmy, , oy] = pts;
       if (nx === pmx || ny === pmy) {
         pts = [pmx, pmy, nx, ny];
       } else if (oy === pmy) {
