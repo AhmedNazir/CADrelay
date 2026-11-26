@@ -426,8 +426,7 @@ export function computeJunctionDots(
   }
 
   const dots: JunctionDot[] = [];
-  nodeStats.forEach((stat, key) => {
-    const isTerminal = terminalKeys.has(key);
+  nodeStats.forEach((stat) => {
     const isCollinearSplice =
       stat.wireIds.size >= 2 &&
       stat.atomicDegree === 2 &&
@@ -436,7 +435,7 @@ export function computeJunctionDots(
 
     if (
       stat.atomicDegree >= 3 ||
-      (stat.wireIds.size >= 2 && isTerminal) ||
+      (stat.wireIds.size >= 2 && stat.atomicDegree >= 2) ||
       isCollinearSplice
     ) {
       dots.push({

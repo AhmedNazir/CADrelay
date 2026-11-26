@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Toolbar,
   ToolbarButton,
@@ -7,7 +7,7 @@ import {
   TabList,
   Tooltip,
   Badge,
-} from '@fluentui/react-components';
+} from "@fluentui/react-components";
 import {
   New24Regular,
   Open24Regular,
@@ -16,16 +16,19 @@ import {
   ArrowRedo24Regular,
   BookOpen24Regular,
   Warning24Regular,
-} from '@fluentui/react-icons';
-import { useUIStore } from '../../store/uiStore';
-import { useSimStore } from '../../store/simStore';
-import { useCanvasStore } from '../../store/canvasStore';
-import { saveProjectJSON, loadProjectJSON } from '../../utils/fileIO';
-import { HomeTab } from './tabs/HomeTab';
-import { InsertTab } from './tabs/InsertTab';
-import { SimulateTab } from './tabs/SimulateTab';
-import { ViewTab } from './tabs/ViewTab';
-import styles from './Ribbon.module.css';
+  Play24Regular,
+  Pause24Regular,
+  Stop24Regular,
+  Next24Regular,
+} from "@fluentui/react-icons";
+import { useUIStore } from "../../store/uiStore";
+import { useSimStore } from "../../store/simStore";
+import { useCanvasStore } from "../../store/canvasStore";
+import { saveProjectJSON, loadProjectJSON } from "../../utils/fileIO";
+import { HomeTab } from "./tabs/HomeTab";
+import { InsertTab } from "./tabs/InsertTab";
+import { ViewTab } from "./tabs/ViewTab";
+import styles from "./Ribbon.module.css";
 
 export const Ribbon: React.FC = () => {
   const {
@@ -37,16 +40,19 @@ export const Ribbon: React.FC = () => {
   } = useUIStore();
 
   const { components, wires, undo, redo, clearAll } = useCanvasStore();
-  const { simState, isShortCircuit } = useSimStore();
+  const { simState, isShortCircuit, play, pause, stop, step } = useSimStore();
 
   const handleNew = () => {
-    if (components.length === 0 || window.confirm('Start a new project? Unsaved changes will be lost.')) {
+    if (
+      components.length === 0 ||
+      window.confirm("Start a new project? Unsaved changes will be lost.")
+    ) {
       clearAll();
     }
   };
 
   const handleSave = () => {
-    saveProjectJSON('CADrelay_Circuit', components, wires);
+    saveProjectJSON("CADrelay_Circuit", components, wires);
   };
 
   const handleOpen = async () => {
@@ -59,29 +65,103 @@ export const Ribbon: React.FC = () => {
   };
 
   return (
-    <div className={`${styles.ribbonContainer} ${theme === 'dark' ? styles.dark : ''}`}>
+    <div
+      className={`${styles.ribbonContainer} ${theme === "dark" ? styles.dark : ""}`}
+    >
       {/* Title Bar */}
       <div className={styles.titleBar}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span className={styles.appTitle}>⚡ CADrelay</span>
-          <span className={styles.projectName}>— Industrial Circuit CAD & Simulator</span>
+          <span className={styles.projectName}>
+            — Industrial Circuit CAD & Simulator
+          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+        {/* Simulation Controls in Title Bar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginLeft: "auto",
+          }}
+        >
+          <Tooltip content="Start Simulation (F5)" relationship="label">
+            <ToolbarButton
+              icon={<Play24Regular />}
+              appearance={simState === "running" ? "primary" : "subtle"}
+              onClick={play}
+              disabled={simState === "running"}
+            >
+              Play
+            </ToolbarButton>
+          </Tooltip>
+          <Tooltip content="Pause / Resume" relationship="label">
+            <ToolbarButton
+              icon={<Pause24Regular />}
+              appearance={simState === "paused" ? "primary" : "subtle"}
+              onClick={pause}
+              disabled={simState === "stopped"}
+            >
+              {simState === "paused" ? "Resume" : "Pause"}
+            </ToolbarButton>
+          </Tooltip>
+          <Tooltip content="Stop Simulation" relationship="label">
+            <ToolbarButton
+              icon={<Stop24Regular />}
+              onClick={stop}
+              disabled={simState === "stopped"}
+            >
+              Stop
+            </ToolbarButton>
+          </Tooltip>
+          <Tooltip content="Single Step" relationship="label">
+            <ToolbarButton
+              icon={<Next24Regular />}
+              onClick={step}
+              disabled={simState === "running"}
+            >
+              Step
+            </ToolbarButton>
+          </Tooltip>
+
+          <div
+            style={{
+              width: 1,
+              height: 24,
+              background: "var(--colorNeutralStroke1)",
+              margin: "0 8",
+            }}
+          />
+
           {isShortCircuit && (
-            <Badge appearance="filled" color="danger" icon={<Warning24Regular />}>
+            <Badge
+              appearance="filled"
+              color="danger"
+              icon={<Warning24Regular />}
+            >
               SHORT CIRCUIT
             </Badge>
           )}
 
-          {simState === 'running' && (
-            <Badge appearance="filled" color="success" className={styles.simBadge}>
+          {simState === "running" && (
+            <Badge
+              appearance="filled"
+              color="success"
+              className={styles.simBadge}
+            >
               ● SIMULATING LIVE
             </Badge>
           )}
 
-          <Tooltip content="Keyboard Shortcuts & User Guide" relationship="label">
-            <button className={styles.titleHelpBtn} onClick={() => setHelpModalOpen(true)}>
+          <Tooltip
+            content="Keyboard Shortcuts & User Guide"
+            relationship="label"
+          >
+            <button
+              className={styles.titleHelpBtn}
+              onClick={() => setHelpModalOpen(true)}
+            >
               Help & Shortcuts
             </button>
           </Tooltip>
@@ -108,7 +188,10 @@ export const Ribbon: React.FC = () => {
             <ToolbarButton icon={<ArrowRedo24Regular />} onClick={redo} />
           </Tooltip>
           <ToolbarDivider />
-          <Tooltip content="Browse Pre-built Example Circuits" relationship="label">
+          <Tooltip
+            content="Browse Pre-built Example Circuits"
+            relationship="label"
+          >
             <ToolbarButton
               icon={<BookOpen24Regular />}
               onClick={() => setExamplesModalOpen(true)}
@@ -127,16 +210,14 @@ export const Ribbon: React.FC = () => {
       >
         <Tab value="home">Home</Tab>
         <Tab value="insert">Insert</Tab>
-        <Tab value="simulate">Simulate</Tab>
         <Tab value="view">View</Tab>
       </TabList>
 
       {/* Tab Content */}
       <div className={styles.tabContent}>
-        {activeRibbonTab === 'home' && <HomeTab />}
-        {activeRibbonTab === 'insert' && <InsertTab />}
-        {activeRibbonTab === 'simulate' && <SimulateTab />}
-        {activeRibbonTab === 'view' && <ViewTab />}
+        {activeRibbonTab === "home" && <HomeTab />}
+        {activeRibbonTab === "insert" && <InsertTab />}
+        {activeRibbonTab === "view" && <ViewTab />}
       </div>
     </div>
   );

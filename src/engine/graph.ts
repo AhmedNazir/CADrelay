@@ -1,4 +1,5 @@
 import type { CanvasComponent, WireSegment, RotationAngle } from '../store/canvasStore';
+import { getWireEndpoints, getWireSubSegments, isPointOnSegmentInterior, projectPointOnSegment } from '../utils/wireGeometry';
 
 export const TERMINAL_OFFSET = 40;
 export type NodeKey = string; // "x,y"
@@ -289,12 +290,47 @@ export function buildGraph(components: CanvasComponent[], wires: WireSegment[]):
     wireEdges.get(b)!.add(a);
   };
 
+  const junctionCandidates = new Map<string, [number, number]>();
+  const addJunctionCandidate = (x: number, y: number) => {
+    junctionCandidates.set(nk(x, y), [x, y]);
+  };
   for (const wire of wires) {
-    const [x1, y1, x2, y2] = wire.points;
+    for (let i = 0; i + 1 < wire.points.length; i += 2) {
+      addJunctionCandidate(wire.points[i], wire.points[i + 1]);
+    }
+  }
+  for (const comp of components) {
+    for (const terminal of getComponentTerminals(comp)) {
+      addJunctionCandidate(terminal.x, terminal.y);
+    }
+  }
+
+  for (const wire of wires) {
+    const { x1, y1, x2, y2 } = getWireEndpoints(wire.points);
     const a = nk(x1, y1);
     const b = nk(x2, y2);
-    addEdge(a, b);
     wireNodeMap.set(wire.id, [a, b]);
+
+    for (const [ax, ay, bx, by] of getWireSubSegments(wire.points)) {
+      const splitPoints = [{ x: ax, y: ay, distance: 0 }];
+      for (const [x, y] of junctionCandidates.values()) {
+        if (isPointOnSegmentInterior(x, y, ax, ay, bx, by)) {
+          splitPoints.push({
+            x,
+            y,
+            distance: projectPointOnSegment(x, y, ax, ay, bx, by).t,
+          });
+        }
+      }
+      splitPoints.push({ x: bx, y: by, distance: 1 });
+      splitPoints.sort((left, right) => left.distance - right.distance);
+      for (let i = 0; i + 1 < splitPoints.length; i += 1) {
+        addEdge(
+          nk(splitPoints[i].x, splitPoints[i].y),
+          nk(splitPoints[i + 1].x, splitPoints[i + 1].y),
+        );
+      }
+    }
   }
 
   for (const comp of components) {

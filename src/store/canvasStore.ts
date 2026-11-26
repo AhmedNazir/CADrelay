@@ -5,6 +5,7 @@ import {
   getWireEndpoints,
   updateWireEndpoints,
 } from '../utils/wireGeometry';
+import { snapPoint, snapToGrid } from '../utils/snapGrid';
 
 export type ComponentType =
   // Power Rails & Supplies
@@ -88,6 +89,8 @@ export type ComponentType =
   | 'TIMER_TOF'
   // Outputs & Actuators
   | 'LAMP'
+  | 'LAMP_AC'
+  | 'LAMP_DC'
   | 'MOTOR_1P'
   | 'MOTOR_3P'
   | 'MOTOR_3P_V'
@@ -160,6 +163,8 @@ interface CanvasState {
   ) => void;
   removeSelected: () => void;
   addWire: (wire: WireSegment) => void;
+  addWires: (wires: WireSegment[]) => void;
+  moveWire: (id: string, deltaX: number, deltaY: number) => void;
   updateWire: (id: string, updates: Partial<WireSegment>) => void;
   updateWires: (ids: string[], updates: Partial<WireSegment>) => void;
   setSelected: (ids: string[]) => void;
@@ -177,6 +182,16 @@ interface CanvasState {
 }
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
+
+const snapComponent = (comp: CanvasComponent): CanvasComponent => {
+  const [x, y] = snapPoint(comp.x, comp.y);
+  return { ...comp, x, y };
+};
+
+const snapWire = (wire: WireSegment): WireSegment => ({
+  ...wire,
+  points: wire.points.map((point) => snapToGrid(point)),
+});
 
 function syncWiresForComponentTransform(
   prevComp: CanvasComponent,
@@ -254,18 +269,21 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   addComponent: (comp) => {
     get()._pushHistory();
-    set((s) => ({ components: [...s.components, comp] }));
+    set((s) => ({ components: [...s.components, snapComponent(comp)] }));
   },
 
   updateComponent: (id, updates) =>
     set((s) => ({
-      components: s.components.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+      components: s.components.map((c) =>
+        c.id === id ? snapComponent({ ...c, ...updates }) : c
+      ),
     })),
 
   moveComponent: (id, newX, newY) => {
     const { components, wires } = get();
     const comp = components.find((c) => c.id === id);
     if (!comp) return;
+    [newX, newY] = snapPoint(newX, newY);
     if (newX === comp.x && newY === comp.y) return;
 
     get()._pushHistory();
@@ -279,6 +297,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
 
   previewComponentMove: (id, newX, newY, origComp, origWires) => {
+    [newX, newY] = snapPoint(newX, newY);
     const nextComp = { ...origComp, x: newX, y: newY };
     const updatedWires = syncWiresForComponentTransform(origComp, nextComp, origWires);
     set((s) => ({
@@ -290,6 +309,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   commitComponentMove: (id, newX, newY, origComponents, origWires) => {
     const origComp = origComponents.find((c) => c.id === id);
     if (!origComp) return;
+    [newX, newY] = snapPoint(newX, newY);
 
     if (newX === origComp.x && newY === origComp.y) {
       set({ components: origComponents, wires: origWires });
@@ -334,36 +354,67 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     }));
   },
 
-  addWire: (wire) => {
-    const { components } = get();
-    const { x1, y1, x2, y2 } = getWireEndpoints(wire.points);
-    const startTerm =
-      wire.startPin ??
-      (() => {
-        const hit = findTerminalAtPoint(components, x1, y1, getComponentTerminals);
-        return hit ? { componentId: hit.componentId, terminalName: hit.terminalName } : undefined;
-      })();
-    const endTerm =
-      wire.endPin ??
-      (() => {
-        const hit = findTerminalAtPoint(components, x2, y2, getComponentTerminals);
-        return hit ? { componentId: hit.componentId, terminalName: hit.terminalName } : undefined;
-      })();
+  addWire: (wire) => get().addWires([wire]),
 
-    const enriched: WireSegment = {
-      ...wire,
-      ...(startTerm ? { startPin: startTerm } : {}),
-      ...(endTerm ? { endPin: endTerm } : {}),
-    };
+  addWires: (newWires) => {
+    if (!newWires.length) return;
+    const { components } = get();
+    const enriched = newWires.map((wire) => {
+      const snapped = snapWire(wire);
+      const { x1, y1, x2, y2 } = getWireEndpoints(snapped.points);
+      const startTerm =
+        snapped.startPin ??
+        (() => {
+          const hit = findTerminalAtPoint(components, x1, y1, getComponentTerminals);
+          return hit ? { componentId: hit.componentId, terminalName: hit.terminalName } : undefined;
+        })();
+      const endTerm =
+        snapped.endPin ??
+        (() => {
+          const hit = findTerminalAtPoint(components, x2, y2, getComponentTerminals);
+          return hit ? { componentId: hit.componentId, terminalName: hit.terminalName } : undefined;
+        })();
+
+      return {
+        ...snapped,
+        ...(startTerm ? { startPin: startTerm } : {}),
+        ...(endTerm ? { endPin: endTerm } : {}),
+      };
+    });
 
     get()._pushHistory();
-    set((s) => ({ wires: [...s.wires, enriched] }));
+    set((s) => ({ wires: [...s.wires, ...enriched] }));
+  },
+
+  moveWire: (id, deltaX, deltaY) => {
+    [deltaX, deltaY] = snapPoint(deltaX, deltaY);
+    if (deltaX === 0 && deltaY === 0) return;
+    const { wires } = get();
+    if (!wires.some((wire) => wire.id === id)) return;
+
+    get()._pushHistory();
+    set((s) => ({
+      wires: s.wires.map((wire) =>
+        wire.id === id
+          ? {
+              ...wire,
+              points: wire.points.map((value, index) =>
+                value + (index % 2 === 0 ? deltaX : deltaY),
+              ),
+              startPin: undefined,
+              endPin: undefined,
+            }
+          : wire,
+      ),
+    }));
   },
 
   updateWire: (id, updates) => {
     get()._pushHistory();
     set((s) => ({
-      wires: s.wires.map((w) => (w.id === id ? { ...w, ...updates } : w)),
+      wires: s.wires.map((w) =>
+        w.id === id ? snapWire({ ...w, ...updates }) : w
+      ),
     }));
   },
 
@@ -372,7 +423,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const idSet = new Set(ids);
     get()._pushHistory();
     set((s) => ({
-      wires: s.wires.map((w) => (idSet.has(w.id) ? { ...w, ...updates } : w)),
+      wires: s.wires.map((w) =>
+        idSet.has(w.id) ? snapWire({ ...w, ...updates }) : w
+      ),
     }));
   },
 
@@ -489,8 +542,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   loadCircuit: (newComponents, newWires) => {
     get()._pushHistory();
     set({
-      components: clone(newComponents),
-      wires: clone(newWires),
+      components: newComponents.map((comp) => snapComponent(clone(comp))),
+      wires: newWires.map((wire) => snapWire(clone(wire))),
       selectedIds: [],
       pressedButtons: new Set(),
       toggledSwitches: new Set(),
